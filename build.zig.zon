@@ -1,0 +1,11 @@
+.{
+    .name = "libcurl",
+    .version = "7.88.1",
+
+    .dependencies = .{
+        .libz = .{
+            .url = "https://github.com/andrewrk/libz/archive/9e71b746b83d2b5bf5eb247663eb65a52cf0f68f.tar.gz",
+            .hash = "12204ea3490e5bdf379f56aa11784d906aed6d4c553c724fa5427169915f2cf4a651",
+        },
+    },
+}

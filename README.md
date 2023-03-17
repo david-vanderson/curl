@@ -1,3 +1,9 @@
+This is a fork of [curl](https://curl.se/), packaged for Zig. `build.zig` has
+been added (based off the work of https://github.com/mattnite/zig-libcurl).
+
+Original README follows:
+
+----------------
 <!--
 Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
 
