@@ -4,8 +4,12 @@
 
     .dependencies = .{
         .libz = .{
-            .url = "https://github.com/andrewrk/libz/archive/9e71b746b83d2b5bf5eb247663eb65a52cf0f68f.tar.gz",
-            .hash = "12204ea3490e5bdf379f56aa11784d906aed6d4c553c724fa5427169915f2cf4a651",
+            .url = "https://github.com/andrewrk/libz/archive/8bf2a1c61b87773131bee2086737b5f02b7c0888.tar.gz",
+            .hash = "12209e851f7e2c6ba2f01de3e11b1771f03e49666065320abd8414aac152bfa75fae",
+        },
+        .libssh2 = .{
+            .url = "https://github.com/david-vanderson/libssh2/archive/68b5843058e70ed059b727427adab42acf8337db.tar.gz",
+            .hash = "1220641ebefab05627adbcf4aad98671b20e6545f8f740157c893cdc65d294d81040",
         },
     },
 }
