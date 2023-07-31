@@ -9,8 +9,8 @@ pub fn build(b: *std.build.Builder) void {
         .target = target,
         .optimize = optimize,
     });
-    lib.addIncludePath("include");
-    lib.addIncludePath("lib");
+    lib.addIncludePath(.{ .path = "include" });
+    lib.addIncludePath(.{ .path = "lib" });
     lib.addCSourceFiles(srcs, &.{});
 
     const libz_dep = b.dependency("libz", .{
