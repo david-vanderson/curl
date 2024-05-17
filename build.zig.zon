@@ -4,12 +4,13 @@
 
     .dependencies = .{
         .libz = .{
-            .url = "https://github.com/andrewrk/libz/archive/8bf2a1c61b87773131bee2086737b5f02b7c0888.tar.gz",
-            .hash = "12209e851f7e2c6ba2f01de3e11b1771f03e49666065320abd8414aac152bfa75fae",
+            .url = "https://github.com/david-vanderson/libz/archive/d1ceae96e00fa80710966916498837f2182e62dd.tar.gz",
+            .hash = "1220810ce4bbe12d918c208f3f526669b7e42866fd9849a2bdc6d84d97f9886da172",
         },
         .libssh2 = .{
-            .url = "https://github.com/david-vanderson/libssh2/archive/d6f73a6608033b6894725d53c9c90643980b52c5.tar.gz",
-            .hash = "122021b154c8e21fee847b629a142c81b44bcf19b9828b993fe822899239eef05ca5",
+            .url = "https://github.com/david-vanderson/libssh2/archive/d5aa0392815475a90f7f646035361188bab59b5d.tar.gz",
+            .hash = "12202d760b9b21fdcb417817e5894d7255e55443b76ab9792a91f119ad5ac08f212f",
         },
     },
+    .paths = .{""},
 }

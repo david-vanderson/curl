@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn build(b: *std.build.Builder) void {
+pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -11,7 +11,7 @@ pub fn build(b: *std.build.Builder) void {
     });
     lib.addIncludePath(.{ .path = "include" });
     lib.addIncludePath(.{ .path = "lib" });
-    lib.addCSourceFiles(srcs, &.{});
+    lib.addCSourceFiles(.{ .files = srcs });
 
     const libz_dep = b.dependency("libz", .{
         .target = target,
@@ -36,10 +36,10 @@ pub fn build(b: *std.build.Builder) void {
     lib.linkLibC();
 
     b.installArtifact(lib);
-    lib.installHeadersDirectory("include/curl", "curl");
+    lib.installHeadersDirectory(b.path("include/curl"), "", .{});
 }
 
-fn addCDefines(lib: *std.Build.CompileStep) void {
+fn addCDefines(lib: *std.Build.Step.Compile) void {
     lib.defineCMacro("BUILDING_LIBCURL", null);
 
     // when not building a shared library
@@ -148,7 +148,7 @@ fn addCDefines(lib: *std.Build.CompileStep) void {
     // if you have the zlib.h header file
     lib.defineCMacro("HAVE_ZLIB_H", "1");
 
-    if (lib.target.isWindows()) {
+    if (lib.root_module.resolved_target.?.result.os.tag == .windows) {
         // Define if you want to enable WIN32 threaded DNS lookup
         //lib.defineCMacro("USE_THREADS_WIN32", "1");
 
@@ -188,8 +188,9 @@ fn addCDefines(lib: *std.Build.CompileStep) void {
     // #undef EGD_SOCKET
 
     // Define if you want to enable IPv6 support
-    if (!lib.target.isDarwin())
+    if (!lib.root_module.resolved_target.?.result.os.tag.isDarwin()) {
         lib.defineCMacro("ENABLE_IPV6", "1");
+    }
 
     // Define to 1 if you have the alarm function.
     lib.defineCMacro("HAVE_ALARM", "1");
@@ -258,8 +259,9 @@ fn addCDefines(lib: *std.Build.CompileStep) void {
     lib.defineCMacro("HAVE_GETHOSTBYNAME", "1");
 
     // Define to 1 if you have the gethostbyname_r function.
-    if (!lib.target.isDarwin())
+    if (!lib.root_module.resolved_target.?.result.os.tag.isDarwin()) {
         lib.defineCMacro("HAVE_GETHOSTBYNAME_R", "1");
+    }
 
     // gethostbyname_r() takes 3 args
     // #undef HAVE_GETHOSTBYNAME_R_3
@@ -458,8 +460,9 @@ fn addCDefines(lib: *std.Build.CompileStep) void {
     lib.defineCMacro("HAVE_MEMORY_H", "1");
 
     // Define to 1 if you have the MSG_NOSIGNAL flag.
-    if (!lib.target.isDarwin())
+    if (!lib.root_module.resolved_target.?.result.os.tag.isDarwin()) {
         lib.defineCMacro("HAVE_MSG_NOSIGNAL", "1");
+    }
 
     // Define to 1 if you have the <netdb.h> header file.
     lib.defineCMacro("HAVE_NETDB_H", "1");
@@ -471,8 +474,9 @@ fn addCDefines(lib: *std.Build.CompileStep) void {
     lib.defineCMacro("HAVE_NETINET_TCP_H", "1");
 
     // Define to 1 if you have the <linux/tcp.h> header file.
-    if (lib.target.isLinux())
+    if (lib.root_module.resolved_target.?.result.os.tag == .linux) {
         lib.defineCMacro("HAVE_LINUX_TCP_H", "1");
+    }
 
     // Define to 1 if you have the <net/if.h> header file.
     lib.defineCMacro("HAVE_NET_IF_H", "1");
