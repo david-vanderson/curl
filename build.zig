@@ -36,7 +36,7 @@ pub fn build(b: *std.Build) void {
     lib.linkLibC();
 
     b.installArtifact(lib);
-    lib.installHeadersDirectory(b.path("include/curl"), "", .{});
+    lib.installHeadersDirectory(b.path("include/curl"), "curl", .{});
 }
 
 fn addCDefines(lib: *std.Build.Step.Compile) void {
