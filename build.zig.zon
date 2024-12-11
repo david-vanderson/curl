@@ -8,8 +8,8 @@
             .hash = "1220810ce4bbe12d918c208f3f526669b7e42866fd9849a2bdc6d84d97f9886da172",
         },
         .libssh2 = .{
-            .url = "https://github.com/david-vanderson/libssh2/archive/d5aa0392815475a90f7f646035361188bab59b5d.tar.gz",
-            .hash = "12202d760b9b21fdcb417817e5894d7255e55443b76ab9792a91f119ad5ac08f212f",
+            .url = "https://github.com/david-vanderson/libssh2/archive/de5fb2d0e878961ac499d5d27f8736f139a7e2f3.tar.gz",
+            .hash = "1220bd5f54fd8b532446b8c241b9b1a25b952c5479bc3555d0dc8f4aba6d65cdef4b",
         },
     },
     .paths = .{""},
