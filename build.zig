@@ -11,7 +11,10 @@ pub fn build(b: *std.Build) void {
     });
     lib.addIncludePath(b.path("include"));
     lib.addIncludePath(b.path("lib"));
-    lib.addCSourceFiles(.{ .files = srcs });
+
+    var cflags: std.ArrayList([]const u8) = .init(b.allocator);
+    addCDefines(lib, &cflags);
+    lib.addCSourceFiles(.{ .files = srcs, .flags = cflags.items });
 
     const libz_dep = b.dependency("libz", .{
         .target = target,
@@ -31,29 +34,27 @@ pub fn build(b: *std.Build) void {
     });
     lib.linkLibrary(mbedtls_dep.artifact("mbedtls"));
 
-    addCDefines(lib);
-
     lib.linkLibC();
 
     b.installArtifact(lib);
     lib.installHeadersDirectory(b.path("include/curl"), "curl", .{});
 }
 
-fn addCDefines(lib: *std.Build.Step.Compile) void {
-    lib.defineCMacro("BUILDING_LIBCURL", null);
+fn addCDefines(lib: *std.Build.Step.Compile, cflags: *std.ArrayList([]const u8)) void {
+    cflags.append("-DBUILDING_LIBCURL") catch @panic("OOM");
 
     // when not building a shared library
-    lib.defineCMacro("CURL_STATICLIB", "1");
+    cflags.append("-DCURL_STATICLIB=1") catch @panic("OOM");
     //try exported_defines.append(.{ .key = "CURL_STATICLIB", .value = "1" });
 
     // disables LDAP
-    lib.defineCMacro("CURL_DISABLE_LDAP", "1");
+    cflags.append("-DCURL_DISABLE_LDAP=1") catch @panic("OOM");
 
     // disables LDAPS
-    lib.defineCMacro("CURL_DISABLE_LDAPS", "1");
+    cflags.append("-DCURL_DISABLE_LDAPS=1") catch @panic("OOM");
 
     // if mbedTLS is enabled
-    lib.defineCMacro("USE_MBEDTLS", "1");
+    cflags.append("-DUSE_MBEDTLS=1") catch @panic("OOM");
 
     // disables alt-svc
     // #undef CURL_DISABLE_ALTSVC
@@ -65,19 +66,19 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef CURL_DISABLE_CRYPTO_AUTH
 
     // disables DICT
-    lib.defineCMacro("CURL_DISABLE_DICT", "1");
+    cflags.append("-DCURL_DISABLE_DICT=1") catch @panic("OOM");
 
     // disables DNS-over-HTTPS
     // #undef CURL_DISABLE_DOH
 
     // disables FILE
-    lib.defineCMacro("CURL_DISABLE_FILE", "1");
+    cflags.append("-DCURL_DISABLE_FILE=1") catch @panic("OOM");
 
     // disables FTP
-    lib.defineCMacro("CURL_DISABLE_FTP", "1");
+    cflags.append("-DCURL_DISABLE_FTP=1") catch @panic("OOM");
 
     // disables GOPHER
-    lib.defineCMacro("CURL_DISABLE_GOPHER", "1");
+    cflags.append("-DCURL_DISABLE_GOPHER=1") catch @panic("OOM");
 
     // disables HSTS support
     // #undef CURL_DISABLE_HSTS
@@ -86,7 +87,7 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef CURL_DISABLE_HTTP
 
     // disables IMAP
-    lib.defineCMacro("CURL_DISABLE_IMAP", "1");
+    cflags.append("-DCURL_DISABLE_IMAP=1") catch @panic("OOM");
 
     // disables --libcurl option from the curl tool
     // #undef CURL_DISABLE_LIBCURL_OPTION
@@ -95,7 +96,7 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef CURL_DISABLE_MIME
 
     // disables MQTT
-    lib.defineCMacro("CURL_DISABLE_MQTT", "1");
+    cflags.append("-DCURL_DISABLE_MQTT=1") catch @panic("OOM");
 
     // disables netrc parser
     // #undef CURL_DISABLE_NETRC
@@ -107,7 +108,7 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef CURL_DISABLE_PARSEDATE
 
     // disables POP3
-    lib.defineCMacro("CURL_DISABLE_POP3", "1");
+    cflags.append("-DCURL_DISABLE_POP3=1") catch @panic("OOM");
 
     // disables built-in progress meter
     // #undef CURL_DISABLE_PROGRESS_METER
@@ -116,63 +117,63 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef CURL_DISABLE_PROXY
 
     // disables RTSP
-    lib.defineCMacro("CURL_DISABLE_RTSP", "1");
+    cflags.append("-DCURL_DISABLE_RTSP=1") catch @panic("OOM");
 
     // disables SMB
-    lib.defineCMacro("CURL_DISABLE_SMB", "1");
+    cflags.append("-DCURL_DISABLE_SMB=1") catch @panic("OOM");
 
     // disables SMTP
-    lib.defineCMacro("CURL_DISABLE_SMTP", "1");
+    cflags.append("-DCURL_DISABLE_SMTP=1") catch @panic("OOM");
 
     // disables use of socketpair for curl_multi_poll
     // #undef CURL_DISABLE_SOCKETPAIR
 
     // disables TELNET
-    lib.defineCMacro("CURL_DISABLE_TELNET", "1");
+    cflags.append("-DCURL_DISABLE_TELNET=1") catch @panic("OOM");
 
     // disables TFTP
-    lib.defineCMacro("CURL_DISABLE_TFTP", "1");
+    cflags.append("-DCURL_DISABLE_TFTP=1") catch @panic("OOM");
 
     // disables verbose strings
     // #undef CURL_DISABLE_VERBOSE_STRINGS
 
     // Define to 1 if you have the `ssh2' library (-lssh2).
-    lib.defineCMacro("HAVE_LIBSSH2", "1");
+    cflags.append("-DHAVE_LIBSSH2=1") catch @panic("OOM");
 
     // Define to 1 if you have the <libssh2.h> header file.
-    lib.defineCMacro("HAVE_LIBSSH2_H", "1");
+    cflags.append("-DHAVE_LIBSSH2_H=1") catch @panic("OOM");
 
     // if zlib is available
-    lib.defineCMacro("HAVE_LIBZ", "1");
+    cflags.append("-DHAVE_LIBZ=1") catch @panic("OOM");
 
     // if you have the zlib.h header file
-    lib.defineCMacro("HAVE_ZLIB_H", "1");
+    cflags.append("-DHAVE_ZLIB_H=1") catch @panic("OOM");
 
     if (lib.root_module.resolved_target.?.result.os.tag == .windows) {
         // Define if you want to enable WIN32 threaded DNS lookup
-        //lib.defineCMacro("USE_THREADS_WIN32", "1");
+        //cflags.append("-DUSE_THREADS_WIN32=1") catch @panic("OOM");
 
         return;
     }
 
-    //lib.defineCMacro("libcurl_EXPORTS", null);
+    //cflags.append("-Dlibcurl_EXPORTS") catch @panic("OOM");
 
-    //lib.defineCMacro("STDC_HEADERS", null);
+    cflags.append("-DSTDC_HEADERS") catch @panic("OOM");
 
     // when building libcurl itself
     // #undef BUILDING_LIBCURL
 
     // Location of default ca bundle
-    // lib.defineCMacro("CURL_CA_BUNDLE", "\"/etc/ssl/certs/ca-certificates.crt\"");
+    // cflags.append("-DCURL_CA_BUNDLE=\"/etc/ssl/certs/ca-certificates.crt\"") catch @panic("OOM");
 
     // define "1" to use built-in ca store of TLS backend
     // #undef CURL_CA_FALLBACK
 
     // Location of default ca path
-    // lib.defineCMacro("CURL_CA_PATH", "\"/etc/ssl/certs\"");
+    // cflags.append("-DCURL_CA_PATH=\"/etc/ssl/certs\"") catch @panic("OOM");
 
     // to make a symbol visible
-    lib.defineCMacro("CURL_EXTERN_SYMBOL", "__attribute__ ((__visibility__ (\"default\"))");
+    cflags.append("-DCURL_EXTERN_SYMBOL=__attribute__ ((__visibility__ (\"default\"))") catch @panic("OOM");
     // Ensure using CURL_EXTERN_SYMBOL is possible
     //#ifndef CURL_EXTERN_SYMBOL
     //lib.defineCMacro("CURL_EXTERN_SYMBOL
@@ -189,35 +190,35 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
 
     // Define if you want to enable IPv6 support
     if (!lib.root_module.resolved_target.?.result.os.tag.isDarwin()) {
-        lib.defineCMacro("ENABLE_IPV6", "1");
+        cflags.append("-DENABLE_IPV6=1") catch @panic("OOM");
     }
 
     // Define to 1 if you have the alarm function.
-    lib.defineCMacro("HAVE_ALARM", "1");
+    cflags.append("-DHAVE_ALARM=1") catch @panic("OOM");
 
     // Define to 1 if you have the <alloca.h> header file.
-    lib.defineCMacro("HAVE_ALLOCA_H", "1");
+    cflags.append("-DHAVE_ALLOCA_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <arpa/inet.h> header file.
-    lib.defineCMacro("HAVE_ARPA_INET_H", "1");
+    cflags.append("-DHAVE_ARPA_INET_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <arpa/tftp.h> header file.
-    lib.defineCMacro("HAVE_ARPA_TFTP_H", "1");
+    cflags.append("-DHAVE_ARPA_TFTP_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <assert.h> header file.
-    lib.defineCMacro("HAVE_ASSERT_H", "1");
+    cflags.append("-DHAVE_ASSERT_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the `basename' function.
-    lib.defineCMacro("HAVE_BASENAME", "1");
+    cflags.append("-DHAVE_BASENAME=1") catch @panic("OOM");
 
     // Define to 1 if bool is an available type.
-    lib.defineCMacro("HAVE_BOOL_T", "1");
+    cflags.append("-DHAVE_BOOL_T=1") catch @panic("OOM");
 
     // Define to 1 if you have the __builtin_available function.
-    lib.defineCMacro("HAVE_BUILTIN_AVAILABLE", "1");
+    cflags.append("-DHAVE_BUILTIN_AVAILABLE=1") catch @panic("OOM");
 
     // Define to 1 if you have the clock_gettime function and monotonic timer.
-    lib.defineCMacro("HAVE_CLOCK_GETTIME_MONOTONIC", "1");
+    cflags.append("-DHAVE_CLOCK_GETTIME_MONOTONIC=1") catch @panic("OOM");
 
     // Define to 1 if you have the `closesocket' function.
     // #undef HAVE_CLOSESOCKET
@@ -226,41 +227,41 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_CRYPTO_CLEANUP_ALL_EX_DATA
 
     // Define to 1 if you have the <dlfcn.h> header file.
-    lib.defineCMacro("HAVE_DLFCN_H", "1");
+    cflags.append("-DHAVE_DLFCN_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <errno.h> header file.
-    lib.defineCMacro("HAVE_ERRNO_H", "1");
+    cflags.append("-DHAVE_ERRNO_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the fcntl function.
-    lib.defineCMacro("HAVE_FCNTL", "1");
+    cflags.append("-DHAVE_FCNTL=1") catch @panic("OOM");
 
     // Define to 1 if you have the <fcntl.h> header file.
-    lib.defineCMacro("HAVE_FCNTL_H", "1");
+    cflags.append("-DHAVE_FCNTL_H=1") catch @panic("OOM");
 
     // Define to 1 if you have a working fcntl O_NONBLOCK function.
-    lib.defineCMacro("HAVE_FCNTL_O_NONBLOCK", "1");
+    cflags.append("-DHAVE_FCNTL_O_NONBLOCK=1") catch @panic("OOM");
 
     // Define to 1 if you have the freeaddrinfo function.
-    lib.defineCMacro("HAVE_FREEADDRINFO", "1");
+    cflags.append("-DHAVE_FREEADDRINFO=1") catch @panic("OOM");
 
     // Define to 1 if you have the ftruncate function.
-    lib.defineCMacro("HAVE_FTRUNCATE", "1");
+    cflags.append("-DHAVE_FTRUNCATE=1") catch @panic("OOM");
 
     // Define to 1 if you have a working getaddrinfo function.
-    lib.defineCMacro("HAVE_GETADDRINFO", "1");
+    cflags.append("-DHAVE_GETADDRINFO=1") catch @panic("OOM");
 
     // Define to 1 if you have the `geteuid' function.
-    lib.defineCMacro("HAVE_GETEUID", "1");
+    cflags.append("-DHAVE_GETEUID=1") catch @panic("OOM");
 
     // Define to 1 if you have the `getppid' function.
-    lib.defineCMacro("HAVE_GETPPID", "1");
+    cflags.append("-DHAVE_GETPPID=1") catch @panic("OOM");
 
     // Define to 1 if you have the gethostbyname function.
-    lib.defineCMacro("HAVE_GETHOSTBYNAME", "1");
+    cflags.append("-DHAVE_GETHOSTBYNAME=1") catch @panic("OOM");
 
     // Define to 1 if you have the gethostbyname_r function.
     if (!lib.root_module.resolved_target.?.result.os.tag.isDarwin()) {
-        lib.defineCMacro("HAVE_GETHOSTBYNAME_R", "1");
+        cflags.append("-DHAVE_GETHOSTBYNAME_R=1") catch @panic("OOM");
     }
 
     // gethostbyname_r() takes 3 args
@@ -270,10 +271,10 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_GETHOSTBYNAME_R_5
 
     // gethostbyname_r() takes 6 args
-    lib.defineCMacro("HAVE_GETHOSTBYNAME_R_6", "1");
+    cflags.append("-DHAVE_GETHOSTBYNAME_R_6=1") catch @panic("OOM");
 
     // Define to 1 if you have the gethostname function.
-    lib.defineCMacro("HAVE_GETHOSTNAME", "1");
+    cflags.append("-DHAVE_GETHOSTNAME=1") catch @panic("OOM");
 
     // Define to 1 if you have a working getifaddrs function.
     // #undef HAVE_GETIFADDRS
@@ -282,37 +283,37 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_GETPASS_R
 
     // Define to 1 if you have the `getppid' function.
-    lib.defineCMacro("HAVE_GETPPID", "1");
+    cflags.append("-DHAVE_GETPPID=1") catch @panic("OOM");
 
     // Define to 1 if you have the `getprotobyname' function.
-    lib.defineCMacro("HAVE_GETPROTOBYNAME", "1");
+    cflags.append("-DHAVE_GETPROTOBYNAME=1") catch @panic("OOM");
 
     // Define to 1 if you have the `getpeername' function.
-    lib.defineCMacro("HAVE_GETPEERNAME", "1");
+    cflags.append("-DHAVE_GETPEERNAME=1") catch @panic("OOM");
 
     // Define to 1 if you have the `getsockname' function.
-    lib.defineCMacro("HAVE_GETSOCKNAME", "1");
+    cflags.append("-DHAVE_GETSOCKNAME=1") catch @panic("OOM");
 
     // Define to 1 if you have the `if_nametoindex' function.
-    lib.defineCMacro("HAVE_IF_NAMETOINDEX", "1");
+    cflags.append("-DHAVE_IF_NAMETOINDEX=1") catch @panic("OOM");
 
     // Define to 1 if you have the `getpwuid' function.
-    lib.defineCMacro("HAVE_GETPWUID", "1");
+    cflags.append("-DHAVE_GETPWUID=1") catch @panic("OOM");
 
     // Define to 1 if you have the `getpwuid_r' function.
-    lib.defineCMacro("HAVE_GETPWUID_R", "1");
+    cflags.append("-DHAVE_GETPWUID_R=1") catch @panic("OOM");
 
     // Define to 1 if you have the `getrlimit' function.
-    lib.defineCMacro("HAVE_GETRLIMIT", "1");
+    cflags.append("-DHAVE_GETRLIMIT=1") catch @panic("OOM");
 
     // Define to 1 if you have the `gettimeofday' function.
-    lib.defineCMacro("HAVE_GETTIMEOFDAY", "1");
+    cflags.append("-DHAVE_GETTIMEOFDAY=1") catch @panic("OOM");
 
     // Define to 1 if you have a working glibc-style strerror_r function.
     // #undef HAVE_GLIBC_STRERROR_R
 
     // Define to 1 if you have a working gmtime_r function.
-    lib.defineCMacro("HAVE_GMTIME_R", "1");
+    cflags.append("-DHAVE_GMTIME_R=1") catch @panic("OOM");
 
     // if you have the gssapi libraries
     // #undef HAVE_GSSAPI
@@ -345,28 +346,28 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_IDN_FREE_H
 
     // Define to 1 if you have the <ifaddrs.h> header file.
-    lib.defineCMacro("HAVE_IFADDRS_H", "1");
+    cflags.append("-DHAVE_IFADDRS_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the `inet_addr' function.
-    lib.defineCMacro("HAVE_INET_ADDR", "1");
+    cflags.append("-DHAVE_INET_ADDR=1") catch @panic("OOM");
 
     // Define to 1 if you have a IPv6 capable working inet_ntop function.
     // #undef HAVE_INET_NTOP
 
     // Define to 1 if you have a IPv6 capable working inet_pton function.
-    lib.defineCMacro("HAVE_INET_PTON", "1");
+    cflags.append("-DHAVE_INET_PTON=1") catch @panic("OOM");
 
     // Define to 1 if symbol `sa_family_t' exists
-    lib.defineCMacro("HAVE_SA_FAMILY_T", "1");
+    cflags.append("-DHAVE_SA_FAMILY_T=1") catch @panic("OOM");
 
     // Define to 1 if symbol `ADDRESS_FAMILY' exists
     // #undef HAVE_ADDRESS_FAMILY
 
     // Define to 1 if you have the <inttypes.h> header file.
-    lib.defineCMacro("HAVE_INTTYPES_H", "1");
+    cflags.append("-DHAVE_INTTYPES_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the ioctl function.
-    lib.defineCMacro("HAVE_IOCTL", "1");
+    cflags.append("-DHAVE_IOCTL=1") catch @panic("OOM");
 
     // Define to 1 if you have the ioctlsocket function.
     // #undef HAVE_IOCTLSOCKET
@@ -382,10 +383,10 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_IOCTLSOCKET_FIONBIO
 
     // Define to 1 if you have a working ioctl FIONBIO function.
-    lib.defineCMacro("HAVE_IOCTL_FIONBIO", "1");
+    cflags.append("-DHAVE_IOCTL_FIONBIO=1") catch @panic("OOM");
 
     // Define to 1 if you have a working ioctl SIOCGIFADDR function.
-    lib.defineCMacro("HAVE_IOCTL_SIOCGIFADDR", "1");
+    cflags.append("-DHAVE_IOCTL_SIOCGIFADDR=1") catch @panic("OOM");
 
     // Define to 1 if you have the <io.h> header file.
     // #undef HAVE_IO_H
@@ -415,16 +416,16 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_LDAP_SSL_H
 
     // Define to 1 if you have the `ldap_url_parse' function.
-    lib.defineCMacro("HAVE_LDAP_URL_PARSE", "1");
+    cflags.append("-DHAVE_LDAP_URL_PARSE=1") catch @panic("OOM");
 
     // Define to 1 if you have the <libgen.h> header file.
-    lib.defineCMacro("HAVE_LIBGEN_H", "1");
+    cflags.append("-DHAVE_LIBGEN_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the `idn2' library (-lidn2).
     // #undef HAVE_LIBIDN2
 
     // Define to 1 if you have the idn2.h header file.
-    lib.defineCMacro("HAVE_IDN2_H", "1");
+    cflags.append("-DHAVE_IDN2_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the `resolv' library (-lresolv).
     // #undef HAVE_LIBRESOLV
@@ -442,44 +443,44 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_ZSTD
 
     // if your compiler supports LL
-    lib.defineCMacro("HAVE_LL", "1");
+    cflags.append("-DHAVE_LL=1") catch @panic("OOM");
 
     // Define to 1 if you have the <locale.h> header file.
-    lib.defineCMacro("HAVE_LOCALE_H", "1");
+    cflags.append("-DHAVE_LOCALE_H=1") catch @panic("OOM");
 
     // Define to 1 if you have a working localtime_r function.
-    lib.defineCMacro("HAVE_LOCALTIME_R", "1");
+    cflags.append("-DHAVE_LOCALTIME_R=1") catch @panic("OOM");
 
     // Define to 1 if the compiler supports the 'long long' data type.
-    lib.defineCMacro("HAVE_LONGLONG", "1");
+    cflags.append("-DHAVE_LONGLONG=1") catch @panic("OOM");
 
     // Define to 1 if you have the malloc.h header file.
-    lib.defineCMacro("HAVE_MALLOC_H", "1");
+    cflags.append("-DHAVE_MALLOC_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <memory.h> header file.
-    lib.defineCMacro("HAVE_MEMORY_H", "1");
+    cflags.append("-DHAVE_MEMORY_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the MSG_NOSIGNAL flag.
     if (!lib.root_module.resolved_target.?.result.os.tag.isDarwin()) {
-        lib.defineCMacro("HAVE_MSG_NOSIGNAL", "1");
+        cflags.append("-DHAVE_MSG_NOSIGNAL=1") catch @panic("OOM");
     }
 
     // Define to 1 if you have the <netdb.h> header file.
-    lib.defineCMacro("HAVE_NETDB_H", "1");
+    cflags.append("-DHAVE_NETDB_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <netinet/in.h> header file.
-    lib.defineCMacro("HAVE_NETINET_IN_H", "1");
+    cflags.append("-DHAVE_NETINET_IN_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <netinet/tcp.h> header file.
-    lib.defineCMacro("HAVE_NETINET_TCP_H", "1");
+    cflags.append("-DHAVE_NETINET_TCP_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <linux/tcp.h> header file.
     if (lib.root_module.resolved_target.?.result.os.tag == .linux) {
-        lib.defineCMacro("HAVE_LINUX_TCP_H", "1");
+        cflags.append("-DHAVE_LINUX_TCP_H=1") catch @panic("OOM");
     }
 
     // Define to 1 if you have the <net/if.h> header file.
-    lib.defineCMacro("HAVE_NET_IF_H", "1");
+    cflags.append("-DHAVE_NET_IF_H=1") catch @panic("OOM");
 
     // Define to 1 if NI_WITHSCOPEID exists and works.
     // #undef HAVE_NI_WITHSCOPEID
@@ -491,25 +492,25 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_PEM_H
 
     // Define to 1 if you have the `pipe' function.
-    lib.defineCMacro("HAVE_PIPE", "1");
+    cflags.append("-DHAVE_PIPE=1") catch @panic("OOM");
 
     // Define to 1 if you have a working poll function.
-    lib.defineCMacro("HAVE_POLL", "1");
+    cflags.append("-DHAVE_POLL=1") catch @panic("OOM");
 
     // If you have a fine poll
-    lib.defineCMacro("HAVE_POLL_FINE", "1");
+    cflags.append("-DHAVE_POLL_FINE=1") catch @panic("OOM");
 
     // Define to 1 if you have the <poll.h> header file.
-    lib.defineCMacro("HAVE_POLL_H", "1");
+    cflags.append("-DHAVE_POLL_H=1") catch @panic("OOM");
 
     // Define to 1 if you have a working POSIX-style strerror_r function.
-    lib.defineCMacro("HAVE_POSIX_STRERROR_R", "1");
+    cflags.append("-DHAVE_POSIX_STRERROR_R=1") catch @panic("OOM");
 
     // Define to 1 if you have the <pthread.h> header file
-    lib.defineCMacro("HAVE_PTHREAD_H", "1");
+    cflags.append("-DHAVE_PTHREAD_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <pwd.h> header file.
-    lib.defineCMacro("HAVE_PWD_H", "1");
+    cflags.append("-DHAVE_PWD_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the `RAND_egd' function.
     // #undef HAVE_RAND_EGD
@@ -521,79 +522,79 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_RAND_STATUS
 
     // Define to 1 if you have the recv function.
-    lib.defineCMacro("HAVE_RECV", "1");
+    cflags.append("-DHAVE_RECV=1") catch @panic("OOM");
 
     // Define to 1 if you have the recvfrom function.
     // #undef HAVE_RECVFROM
 
     // Define to 1 if you have the select function.
-    lib.defineCMacro("HAVE_SELECT", "1");
+    cflags.append("-DHAVE_SELECT=1") catch @panic("OOM");
 
     // Define to 1 if you have the send function.
-    lib.defineCMacro("HAVE_SEND", "1");
+    cflags.append("-DHAVE_SEND=1") catch @panic("OOM");
 
     // Define to 1 if you have the 'fsetxattr' function.
-    lib.defineCMacro("HAVE_FSETXATTR", "1");
+    cflags.append("-DHAVE_FSETXATTR=1") catch @panic("OOM");
 
     // fsetxattr() takes 5 args
-    lib.defineCMacro("HAVE_FSETXATTR_5", "1");
+    cflags.append("-DHAVE_FSETXATTR_5=1") catch @panic("OOM");
 
     // fsetxattr() takes 6 args
     // #undef HAVE_FSETXATTR_6
 
     // Define to 1 if you have the <setjmp.h> header file.
-    lib.defineCMacro("HAVE_SETJMP_H", "1");
+    cflags.append("-DHAVE_SETJMP_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the `setlocale' function.
-    lib.defineCMacro("HAVE_SETLOCALE", "1");
+    cflags.append("-DHAVE_SETLOCALE=1") catch @panic("OOM");
 
     // Define to 1 if you have the `setmode' function.
     // #undef HAVE_SETMODE
 
     // Define to 1 if you have the `setrlimit' function.
-    lib.defineCMacro("HAVE_SETRLIMIT", "1");
+    cflags.append("-DHAVE_SETRLIMIT=1") catch @panic("OOM");
 
     // Define to 1 if you have the setsockopt function.
-    lib.defineCMacro("HAVE_SETSOCKOPT", "1");
+    cflags.append("-DHAVE_SETSOCKOPT=1") catch @panic("OOM");
 
     // Define to 1 if you have a working setsockopt SO_NONBLOCK function.
     // #undef HAVE_SETSOCKOPT_SO_NONBLOCK
 
     // Define to 1 if you have the sigaction function.
-    lib.defineCMacro("HAVE_SIGACTION", "1");
+    cflags.append("-DHAVE_SIGACTION=1") catch @panic("OOM");
 
     // Define to 1 if you have the siginterrupt function.
-    lib.defineCMacro("HAVE_SIGINTERRUPT", "1");
+    cflags.append("-DHAVE_SIGINTERRUPT=1") catch @panic("OOM");
 
     // Define to 1 if you have the signal function.
-    lib.defineCMacro("HAVE_SIGNAL", "1");
+    cflags.append("-DHAVE_SIGNAL=1") catch @panic("OOM");
 
     // Define to 1 if you have the <signal.h> header file.
-    lib.defineCMacro("HAVE_SIGNAL_H", "1");
+    cflags.append("-DHAVE_SIGNAL_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the sigsetjmp function or macro.
-    lib.defineCMacro("HAVE_SIGSETJMP", "1");
+    cflags.append("-DHAVE_SIGSETJMP=1") catch @panic("OOM");
 
     // Define to 1 if struct sockaddr_in6 has the sin6_scope_id member
-    lib.defineCMacro("HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID", "1");
+    cflags.append("-DHAVE_SOCKADDR_IN6_SIN6_SCOPE_ID=1") catch @panic("OOM");
 
     // Define to 1 if you have the `socket' function.
-    lib.defineCMacro("HAVE_SOCKET", "1");
+    cflags.append("-DHAVE_SOCKET=1") catch @panic("OOM");
 
     // Define to 1 if you have the <stdbool.h> header file.
-    lib.defineCMacro("HAVE_STDBOOL_H", "1");
+    cflags.append("-DHAVE_STDBOOL_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <stdint.h> header file.
-    lib.defineCMacro("HAVE_STDINT_H", "1");
+    cflags.append("-DHAVE_STDINT_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <stdio.h> header file.
-    lib.defineCMacro("HAVE_STDIO_H", "1");
+    cflags.append("-DHAVE_STDIO_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <stdlib.h> header file.
-    lib.defineCMacro("HAVE_STDLIB_H", "1");
+    cflags.append("-DHAVE_STDLIB_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the strcasecmp function.
-    lib.defineCMacro("HAVE_STRCASECMP", "1");
+    cflags.append("-DHAVE_STRCASECMP=1") catch @panic("OOM");
 
     // Define to 1 if you have the strcasestr function.
     // #undef HAVE_STRCASESTR
@@ -602,19 +603,19 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_STRCMPI
 
     // Define to 1 if you have the strdup function.
-    lib.defineCMacro("HAVE_STRDUP", "1");
+    cflags.append("-DHAVE_STRDUP=1") catch @panic("OOM");
 
     // Define to 1 if you have the strerror_r function.
-    lib.defineCMacro("HAVE_STRERROR_R", "1");
+    cflags.append("-DHAVE_STRERROR_R=1") catch @panic("OOM");
 
     // Define to 1 if you have the stricmp function.
     // #undef HAVE_STRICMP
 
     // Define to 1 if you have the <strings.h> header file.
-    lib.defineCMacro("HAVE_STRINGS_H", "1");
+    cflags.append("-DHAVE_STRINGS_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <string.h> header file.
-    lib.defineCMacro("HAVE_STRING_H", "1");
+    cflags.append("-DHAVE_STRING_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the strncmpi function.
     // #undef HAVE_STRNCMPI
@@ -626,70 +627,70 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_STROPTS_H
 
     // Define to 1 if you have the strstr function.
-    lib.defineCMacro("HAVE_STRSTR", "1");
+    cflags.append("-DHAVE_STRSTR=1") catch @panic("OOM");
 
     // Define to 1 if you have the strtok_r function.
-    lib.defineCMacro("HAVE_STRTOK_R", "1");
+    cflags.append("-DHAVE_STRTOK_R=1") catch @panic("OOM");
 
     // Define to 1 if you have the strtoll function.
-    lib.defineCMacro("HAVE_STRTOLL", "1");
+    cflags.append("-DHAVE_STRTOLL=1") catch @panic("OOM");
 
     // if struct sockaddr_storage is defined
-    lib.defineCMacro("HAVE_STRUCT_SOCKADDR_STORAGE", "1");
+    cflags.append("-DHAVE_STRUCT_SOCKADDR_STORAGE=1") catch @panic("OOM");
 
     // Define to 1 if you have the timeval struct.
-    lib.defineCMacro("HAVE_STRUCT_TIMEVAL", "1");
+    cflags.append("-DHAVE_STRUCT_TIMEVAL=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/filio.h> header file.
     // #undef HAVE_SYS_FILIO_H
 
     // Define to 1 if you have the <sys/ioctl.h> header file.
-    lib.defineCMacro("HAVE_SYS_IOCTL_H", "1");
+    cflags.append("-DHAVE_SYS_IOCTL_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/param.h> header file.
-    lib.defineCMacro("HAVE_SYS_PARAM_H", "1");
+    cflags.append("-DHAVE_SYS_PARAM_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/poll.h> header file.
-    lib.defineCMacro("HAVE_SYS_POLL_H", "1");
+    cflags.append("-DHAVE_SYS_POLL_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/resource.h> header file.
-    lib.defineCMacro("HAVE_SYS_RESOURCE_H", "1");
+    cflags.append("-DHAVE_SYS_RESOURCE_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/select.h> header file.
-    lib.defineCMacro("HAVE_SYS_SELECT_H", "1");
+    cflags.append("-DHAVE_SYS_SELECT_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/socket.h> header file.
-    lib.defineCMacro("HAVE_SYS_SOCKET_H", "1");
+    cflags.append("-DHAVE_SYS_SOCKET_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/sockio.h> header file.
     // #undef HAVE_SYS_SOCKIO_H
 
     // Define to 1 if you have the <sys/stat.h> header file.
-    lib.defineCMacro("HAVE_SYS_STAT_H", "1");
+    cflags.append("-DHAVE_SYS_STAT_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/time.h> header file.
-    lib.defineCMacro("HAVE_SYS_TIME_H", "1");
+    cflags.append("-DHAVE_SYS_TIME_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/types.h> header file.
-    lib.defineCMacro("HAVE_SYS_TYPES_H", "1");
+    cflags.append("-DHAVE_SYS_TYPES_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/uio.h> header file.
-    lib.defineCMacro("HAVE_SYS_UIO_H", "1");
+    cflags.append("-DHAVE_SYS_UIO_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/un.h> header file.
-    lib.defineCMacro("HAVE_SYS_UN_H", "1");
+    cflags.append("-DHAVE_SYS_UN_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <sys/utime.h> header file.
     // #undef HAVE_SYS_UTIME_H
 
     // Define to 1 if you have the <termios.h> header file.
-    lib.defineCMacro("HAVE_TERMIOS_H", "1");
+    cflags.append("-DHAVE_TERMIOS_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <termio.h> header file.
-    lib.defineCMacro("HAVE_TERMIO_H", "1");
+    cflags.append("-DHAVE_TERMIO_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <time.h> header file.
-    lib.defineCMacro("HAVE_TIME_H", "1");
+    cflags.append("-DHAVE_TIME_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the <tld.h> header file.
     // #undef HAVE_TLD_H
@@ -698,25 +699,25 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_TLD_STRERROR
 
     // Define to 1 if you have the `uname' function.
-    lib.defineCMacro("HAVE_UNAME", "1");
+    cflags.append("-DHAVE_UNAME=1") catch @panic("OOM");
 
     // Define to 1 if you have the <unistd.h> header file.
-    lib.defineCMacro("HAVE_UNISTD_H", "1");
+    cflags.append("-DHAVE_UNISTD_H=1") catch @panic("OOM");
 
     // Define to 1 if you have the `utime' function.
-    lib.defineCMacro("HAVE_UTIME", "1");
+    cflags.append("-DHAVE_UTIME=1") catch @panic("OOM");
 
     // Define to 1 if you have the `utimes' function.
-    lib.defineCMacro("HAVE_UTIMES", "1");
+    cflags.append("-DHAVE_UTIMES=1") catch @panic("OOM");
 
     // Define to 1 if you have the <utime.h> header file.
-    lib.defineCMacro("HAVE_UTIME_H", "1");
+    cflags.append("-DHAVE_UTIME_H=1") catch @panic("OOM");
 
     // Define to 1 if compiler supports C99 variadic macro style.
-    lib.defineCMacro("HAVE_VARIADIC_MACROS_C99", "1");
+    cflags.append("-DHAVE_VARIADIC_MACROS_C99=1") catch @panic("OOM");
 
     // Define to 1 if compiler supports old gcc variadic macro style.
-    lib.defineCMacro("HAVE_VARIADIC_MACROS_GCC", "1");
+    cflags.append("-DHAVE_VARIADIC_MACROS_GCC=1") catch @panic("OOM");
 
     // Define to 1 if you have the winber.h header file.
     // #undef HAVE_WINBER_H
@@ -762,7 +763,7 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef NEED_REENTRANT
 
     // cpu-machine-OS
-    lib.defineCMacro("OS", "\"Linux\"");
+    cflags.append("-DOS=\"Linux\"") catch @panic("OOM");
 
     // Name of package
     // #undef PACKAGE
@@ -783,7 +784,7 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef PACKAGE_VERSION
 
     // a suitable file to read random data from
-    lib.defineCMacro("RANDOM_FILE", "\"/dev/urandom\"");
+    cflags.append("-DRANDOM_FILE=\"/dev/urandom\"") catch @panic("OOM");
 
     // Define to the type of arg 1 for recvfrom.
     // #undef RECVFROM_TYPE_ARG1
@@ -816,19 +817,19 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef RECVFROM_TYPE_RETV
 
     // Define to the type of arg 1 for recv.
-    lib.defineCMacro("RECV_TYPE_ARG1", "int");
+    cflags.append("-DRECV_TYPE_ARG1=int") catch @panic("OOM");
 
     // Define to the type of arg 2 for recv.
-    lib.defineCMacro("RECV_TYPE_ARG2", "void *");
+    cflags.append("-DRECV_TYPE_ARG2=void *") catch @panic("OOM");
 
     // Define to the type of arg 3 for recv.
-    lib.defineCMacro("RECV_TYPE_ARG3", "size_t");
+    cflags.append("-DRECV_TYPE_ARG3=size_t") catch @panic("OOM");
 
     // Define to the type of arg 4 for recv.
-    lib.defineCMacro("RECV_TYPE_ARG4", "int");
+    cflags.append("-DRECV_TYPE_ARG4=int") catch @panic("OOM");
 
     // Define to the function return type for recv.
-    lib.defineCMacro("RECV_TYPE_RETV", "ssize_t");
+    cflags.append("-DRECV_TYPE_RETV=ssize_t") catch @panic("OOM");
 
     // Define to the type qualifier of arg 5 for select.
     // #undef SELECT_QUAL_ARG5
@@ -846,22 +847,22 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef SELECT_TYPE_RETV
 
     // Define to the type qualifier of arg 2 for send.
-    lib.defineCMacro("SEND_QUAL_ARG2", "const");
+    cflags.append("-DSEND_QUAL_ARG2=const") catch @panic("OOM");
 
     // Define to the type of arg 1 for send.
-    lib.defineCMacro("SEND_TYPE_ARG1", "int");
+    cflags.append("-DSEND_TYPE_ARG1=int") catch @panic("OOM");
 
     // Define to the type of arg 2 for send.
-    lib.defineCMacro("SEND_TYPE_ARG2", "void *");
+    cflags.append("-DSEND_TYPE_ARG2=void *") catch @panic("OOM");
 
     // Define to the type of arg 3 for send.
-    lib.defineCMacro("SEND_TYPE_ARG3", "size_t");
+    cflags.append("-DSEND_TYPE_ARG3=size_t") catch @panic("OOM");
 
     // Define to the type of arg 4 for send.
-    lib.defineCMacro("SEND_TYPE_ARG4", "int");
+    cflags.append("-DSEND_TYPE_ARG4=int") catch @panic("OOM");
 
     // Define to the function return type for send.
-    lib.defineCMacro("SEND_TYPE_RETV", "ssize_t");
+    cflags.append("-DSEND_TYPE_RETV=ssize_t") catch @panic("OOM");
 
     // Note: SIZEOF_* variables are fetched with CMake through check_type_size().
     // As per CMake documentation on CheckTypeSize, C preprocessor code is
@@ -871,43 +872,43 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // Reference: https://cmake.org/cmake/help/latest/module/CheckTypeSize.html
 
     // The size of `int', as computed by sizeof.
-    lib.defineCMacro("SIZEOF_INT", "4");
+    cflags.append("-DSIZEOF_INT=4") catch @panic("OOM");
 
     // The size of `short', as computed by sizeof.
-    lib.defineCMacro("SIZEOF_SHORT", "2");
+    cflags.append("-DSIZEOF_SHORT=2") catch @panic("OOM");
 
     // The size of `long', as computed by sizeof.
-    lib.defineCMacro("SIZEOF_LONG", "8");
+    cflags.append("-DSIZEOF_LONG=8") catch @panic("OOM");
 
     // The size of `off_t', as computed by sizeof.
-    lib.defineCMacro("SIZEOF_OFF_T", "8");
+    cflags.append("-DSIZEOF_OFF_T=8") catch @panic("OOM");
 
     // The size of `curl_off_t', as computed by sizeof.
-    lib.defineCMacro("SIZEOF_CURL_OFF_T", "8");
+    cflags.append("-DSIZEOF_CURL_OFF_T=8") catch @panic("OOM");
 
     // The size of `size_t', as computed by sizeof.
-    lib.defineCMacro("SIZEOF_SIZE_T", "8");
+    cflags.append("-DSIZEOF_SIZE_T=8") catch @panic("OOM");
 
     // The size of `time_t', as computed by sizeof.
-    lib.defineCMacro("SIZEOF_TIME_T", "8");
+    cflags.append("-DSIZEOF_TIME_T=8") catch @panic("OOM");
 
     // Define to 1 if you have the ANSI C header files.
-    lib.defineCMacro("STDC_HEADERS", "1");
+    cflags.append("-DSTDC_HEADERS=1") catch @panic("OOM");
 
     // Define to the type of arg 3 for strerror_r.
     // #undef STRERROR_R_TYPE_ARG3
 
     // Define to 1 if you can safely include both <sys/time.h> and <time.h>.
-    lib.defineCMacro("TIME_WITH_SYS_TIME", "1");
+    cflags.append("-DTIME_WITH_SYS_TIME=1") catch @panic("OOM");
 
     // Define if you want to enable c-ares support
     // #undef USE_ARES
 
     // Define if you want to enable POSIX threaded DNS lookup
-    lib.defineCMacro("USE_THREADS_POSIX", "1");
+    cflags.append("-DUSE_THREADS_POSIX=1") catch @panic("OOM");
 
     // if libSSH2 is in use
-    lib.defineCMacro("USE_LIBSSH2", "1");
+    cflags.append("-DUSE_LIBSSH2=1") catch @panic("OOM");
 
     // If you want to build curl with the built-in manual
     // #undef USE_MANUAL
@@ -937,7 +938,7 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     // #undef HAVE_QUICHE_CONN_SET_QLOG_FD
 
     // if Unix domain sockets are enabled
-    lib.defineCMacro("USE_UNIX_SOCKETS", null);
+    cflags.append("-DUSE_UNIX_SOCKETS") catch @panic("OOM");
 
     // Define to 1 if you are building a Windows target with large file support.
     // #undef USE_WIN32_LARGE_FILES
@@ -963,7 +964,7 @@ fn addCDefines(lib: *std.Build.Step.Compile) void {
     //#endif
 
     // Number of bits in a file offset, on hosts where this is settable.
-    lib.defineCMacro("_FILE_OFFSET_BITS", "64");
+    cflags.append("-D_FILE_OFFSET_BITS=64") catch @panic("OOM");
 
     // Define for large files, on AIX-style hosts.
     // #undef _LARGE_FILES
