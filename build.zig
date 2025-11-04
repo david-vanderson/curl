@@ -4,15 +4,18 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    var lib = b.addStaticLibrary(.{
+    var lib = b.addLibrary(.{
         .name = "curl",
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+        }),
     });
     lib.addIncludePath(b.path("include"));
     lib.addIncludePath(b.path("lib"));
 
-    var cflags: std.ArrayList([]const u8) = .init(b.allocator);
+    var cflags: std.array_list.Managed([]const u8) = .init(b.allocator);
     addCDefines(lib, &cflags);
     lib.addCSourceFiles(.{ .files = srcs, .flags = cflags.items });
 
@@ -34,13 +37,11 @@ pub fn build(b: *std.Build) void {
     });
     lib.linkLibrary(mbedtls_dep.artifact("mbedtls"));
 
-    lib.linkLibC();
-
     b.installArtifact(lib);
     lib.installHeadersDirectory(b.path("include/curl"), "curl", .{});
 }
 
-fn addCDefines(lib: *std.Build.Step.Compile, cflags: *std.ArrayList([]const u8)) void {
+fn addCDefines(lib: *std.Build.Step.Compile, cflags: *std.array_list.Managed([]const u8)) void {
     cflags.append("-DBUILDING_LIBCURL") catch @panic("OOM");
 
     // when not building a shared library
